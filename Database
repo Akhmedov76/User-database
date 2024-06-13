@@ -1,0 +1,152 @@
+import os, json, csv
+
+
+if os.path.exists("users.json"):
+    with open("users.json", "r", encoding="utf-8") as file:
+        users = json.load(file)
+else:
+    users = []
+
+
+def check_csv(filename):
+    if not os.path.exists(filename):
+        with open(filename, "w", encoding="utf-8") as file:
+            file.write(f"Full name| Email\n")
+
+
+def save_json():
+    with open("users.json", "w", encoding="utf-8") as file:
+        json.dump(users, file, indent=4)
+
+
+def check_txt(filename):
+    if not os.path.exists(filename):
+        with open(filename, "w", encoding="utf-8"):
+            pass
+
+
+def save_personal_data():
+    Full_name = input("Enter your full name: ")
+    email = input("Enter your email address: ")
+    choice_type_file = input("Choose a selection type file: ")
+
+    if choice_type_file == "csv":
+        check_csv("users.csv")
+        with open("users.csv", "a", encoding="utf-8") as file:
+            file.write(f"{Full_name}| {email}\n")
+
+    elif choice_type_file == "json":
+        user_info = {"Full name": Full_name, "Email": email}
+        users.append(user_info)
+        save_json()
+
+    elif choice_type_file == "txt":
+        check_txt("users.txt")
+        with open("users.txt", "a", encoding="utf-8") as file:
+            file.write(f"{Full_name}\n{email}\n")
+
+    else:
+        print("Wrong choice")
+    return show_menu()
+
+
+def read_personal_data():
+    input_email = input("Enter your email: ")
+
+    found_in_csv = False
+    check_csv("users.csv")
+    with open("users.csv", "r", encoding="utf-8") as file:
+        reader = csv.reader(file, delimiter="|")
+        for row in reader:
+            if row[1] == input_email:
+                print(f"CSV file found:")
+                print(f"Full name: {row[0]}")
+                print(f"Email: {row[1]}")
+                found_in_csv = True
+                break
+
+    found_in_json = False
+    for user in users:
+        if user["Email"] == input_email:
+            print(f"JSON file found:")
+            print(f"Full name: {user['Full name']}")
+            print(f"Email: {user['Email']}")
+            found_in_json = True
+            break
+
+    found_in_txt = False
+    if os.path.exists("users.txt"):
+        with open("users.txt", "r", encoding="utf-8") as file:
+            lines = file.readlines()
+            for i in range(0, len(lines), 2):
+                if lines[i + 1].strip() == input_email:
+                    print(f"TXT file found:")
+                    print(f"Full name: {lines[i].strip()}")
+                    print(f"Email: {lines[i+1].strip()}")
+                    found_in_txt = True
+                    break
+
+    if not found_in_csv and not found_in_json and not found_in_txt:
+        print("Email not found!")
+
+
+def delete_personal_data():
+    input_email = input("Enter your email: ")
+
+    # CSV filedan o'chirish
+    if os.path.exists("users.csv"):
+        with open("users.csv", "r", encoding="utf-8") as file:
+            lines = file.readlines()
+        with open("users.csv", "w", encoding="utf-8") as file:
+            for line in lines:
+                if input_email not in line:
+                    file.write(line)
+        print("Deleted from CSV if exists")
+
+    # JSON fayldan o'chirish
+    if os.path.exists("users.json"):
+        with open("users.json", "r", encoding="utf-8") as file:
+            users = json.load(file)
+        with open("users.json", "w", encoding="utf-8") as file:
+            users = [user for user in users if user["Email"] != input_email]
+            json.dump(users, file, indent=4)
+        print("Deleted from JSON if exists")
+
+    # TXT fayldan o'chirish
+    if os.path.exists("users.txt"):
+        with open("users.txt", "r", encoding="utf-8") as file:
+            lines = file.readlines()
+        with open("users.txt", "w", encoding="utf-8") as file:
+            i = 0
+            while i < len(lines):
+                if lines[i + 1].strip() == input_email:
+                    i += 2  # Shu qator va email qatorini o'qib o'tkazamiz
+                    continue
+                file.write(lines[i])
+                file.write(lines[i + 1])
+                i += 2
+        print("Deleted from TXT if exists")
+
+
+def show_menu():
+    text = """
+        1. Save personal data
+        2. Read personal data
+        3. Delete personal data
+        4. Exit
+    """
+    print(text)
+    user_input = int(input("Choice from menu: "))
+    if user_input == 1:
+        save_personal_data()
+    elif user_input == 2:
+        read_personal_data()
+    elif user_input == 3:
+        delete_personal_data()
+    elif user_input == 4:
+        print("Goodbye")
+        return
+
+
+if __name__ == "__main__":
+    show_menu()
